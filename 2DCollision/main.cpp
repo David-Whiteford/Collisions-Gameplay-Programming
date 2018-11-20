@@ -30,6 +30,22 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	sf::Texture circle_texture;
+	if (!circle_texture.loadFromFile("assets\\circle.png")) {
+		DEBUG_MSG("Failed to load file");
+		return EXIT_FAILURE;
+	}
+	AnimatedSprite npc_circle(circle_texture);
+
+	sf::Texture capsule_texture;
+	if (!capsule_texture.loadFromFile("assets\\capsule.png")) {
+		DEBUG_MSG("Failed to load file");
+		return EXIT_FAILURE;
+	}
+	AnimatedSprite npc_capsule(capsule_texture);
+	
+
+
 	// Setup NPC's Default Animated Sprite
 	AnimatedSprite npc_animated_sprite(npc_texture);
 	npc_animated_sprite.addFrame(sf::IntRect(3, 3, 84, 84));
@@ -48,20 +64,26 @@ int main()
 	player_animated_sprite.addFrame(sf::IntRect(343, 3, 84, 84));
 	player_animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
 
-	// Setup the NPC
-	GameObject &npc = NPC(npc_animated_sprite);
-
+	
+		// Setup the NPC
+		GameObject &npc = NPC(npc_animated_sprite);
+	
+		// Setup the NPC
+		/*GameObject &cicleNpc = NPC(npc_circle);*/
+	
+	
+	
 	// Setup the Player
 	GameObject &player = Player(player_animated_sprite);
-
 	//Setup NPC AABB
 	c2AABB aabb_npc;
 	aabb_npc.min = c2V(npc.getAnimatedSprite().getPosition().x, npc.getAnimatedSprite().getPosition().y);
 	aabb_npc.max = c2V(
 		npc.getAnimatedSprite().getPosition().x +
-		npc.getAnimatedSprite().getGlobalBounds().width, 
+		npc.getAnimatedSprite().getGlobalBounds().width,
 		npc.getAnimatedSprite().getPosition().y +
 		npc.getAnimatedSprite().getGlobalBounds().height);
+
 
 	//Setup Player AABB
 	c2AABB aabb_player;
@@ -86,24 +108,38 @@ int main()
 		
 		// Move The NPC
 		sf::Vector2f move_to(npc.getAnimatedSprite().getPosition().x + direction.x, npc.getAnimatedSprite().getPosition().y + direction.y);
+		sf::Vector2f move(npc_circle.getPosition().x + direction.x, npc_circle.getPosition().y + direction.y);
+		sf::Vector2f capsule_move(npc_capsule.getPosition().x + direction.x, npc_capsule.getPosition().y + direction.y);
 
-		if (move_to.x < 0) {
+		if (move_to.x < 0 && move.x < 0 && capsule_move.x < 0)
+		{
 			direction.x *= -1;
 			move_to.x = 0 + npc.getAnimatedSprite().getGlobalBounds().width;
 		}
-		else if (move_to.x + npc.getAnimatedSprite().getGlobalBounds().width >= 800) { 
+		else if (move_to.x + npc.getAnimatedSprite().getGlobalBounds().width >= 800 
+			&& move.x + npc_circle.getGlobalBounds().width >= 800
+			&& capsule_move.x + npc_capsule.getGlobalBounds().width >= 800)
+		{ 
 			direction.x *= -1;
 			move_to.x = 800 - npc.getAnimatedSprite().getGlobalBounds().width;
 		}
-		else if (move_to.y < 0) { 
+		else if (move_to.y < 0 && move.y < 0 && capsule_move.y < 0)
+		{ 
 			direction.y *= -1;
 			move_to.y = 0 + npc.getAnimatedSprite().getGlobalBounds().height;
 		}
-		else if (move_to.y + npc.getAnimatedSprite().getGlobalBounds().height >= 600) {
+		else if (move_to.y + npc.getAnimatedSprite().getGlobalBounds().height >= 600 
+			&& move.y + npc_circle.getGlobalBounds().height >= 600
+			&& capsule_move.y + npc_capsule.getGlobalBounds().height >= 600)
+		{
 			direction.y *= -1;
 			move_to.y = 600 - npc.getAnimatedSprite().getGlobalBounds().height;
 		}
-		
+
+
+
+
+		npc_circle.setPosition(move);
 		npc.getAnimatedSprite().setPosition(move_to);
 
 		// Update NPC AABB set x and y
@@ -171,12 +207,14 @@ int main()
 		npc.update();
 
 		// Check for collisions
-		//result = c2AABBtoAABB(aabb_player, aabb_npc);
+		result = c2AABBtoAABB(aabb_player, aabb_npc);
 		cout << ((result != 0) ? ("Collision") : "") << endl;
-		if (result){
+		if (result)
+		{
 			player.getAnimatedSprite().setColor(sf::Color(255,0,0));
 		}
-		else {
+		else 
+		{
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}
 
@@ -188,6 +226,8 @@ int main()
 
 		// Draw the NPC's Current Animated Sprite
 		window.draw(npc.getAnimatedSprite());
+		window.draw(npc_circle);
+		window.draw(npc_capsule);
 
 		// Update the window
 		window.display();
