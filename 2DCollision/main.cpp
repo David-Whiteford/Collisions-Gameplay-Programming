@@ -30,17 +30,24 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	//sf::Texture circle_texture;
-	//if (!circle_texture.loadFromFile("assets\\circle.png")) {
-	//	DEBUG_MSG("Failed to load file");
-	//	return EXIT_FAILURE;
-	//}
-	//AnimatedSprite npc_circle(circle_texture);
+	sf::ConvexShape  polygon;
+	polygon.setFillColor(sf::Color::Green);
+	polygon.setPosition(150, 150);
+	polygon.setPointCount(3);
+	polygon.setPoint(0, sf::Vector2f(0, 0));
+	polygon.setPoint(1, sf::Vector2f(150, 10));
+	polygon.setPoint(2, sf::Vector2f(120, 90));
+
+
+	sf::CircleShape player_circle;
+	player_circle.setFillColor(sf::Color::Green);
+	player_circle.setRadius(50);
+	player_circle.setOrigin(50, 50);
 
 	sf::CircleShape capsuleCircleR;
 	capsuleCircleR.setFillColor(sf::Color::Green);
 	capsuleCircleR.setRadius(50);
-	capsuleCircleR.setPosition(200 , 50);
+	capsuleCircleR.setPosition(200 , 200);
 	capsuleCircleR.setOrigin(50, 50);
 
 
@@ -52,11 +59,28 @@ int main()
 
 	sf::RectangleShape capsuleRect;
 	capsuleRect.setFillColor(sf::Color::Green);
-	capsuleRect.setSize(sf::Vector2f(50,50));
-	capsuleRect.setPosition(200, 50);
-	capsuleRect.setOrigin(50, 50);
-
+	capsuleRect.setSize(sf::Vector2f(75,75));
+	capsuleRect.setPosition(200, 25);
 	
+	sf::CircleShape playerCapsuleCircleR;
+	playerCapsuleCircleR.setFillColor(sf::Color::Green);
+	playerCapsuleCircleR.setRadius(50);
+	playerCapsuleCircleR.setPosition(200, 200);
+	playerCapsuleCircleR.setOrigin(50, 50);
+
+
+	sf::CircleShape playerCapsuleCircleL;
+	playerCapsuleCircleL.setFillColor(sf::Color::Green);
+	playerCapsuleCircleL.setRadius(50);
+	playerCapsuleCircleL.setPosition(250, 50);
+	playerCapsuleCircleL.setOrigin(50, 50);
+
+	sf::RectangleShape playerCapsuleRect;
+	playerCapsuleRect.setFillColor(sf::Color::Green);
+	playerCapsuleRect.setSize(sf::Vector2f(75, 75));
+	playerCapsuleRect.setPosition(200, 25);
+
+
 	sf::CircleShape npc_circle;
 	npc_circle.setFillColor(sf::Color::Red);
 	npc_circle.setRadius(50);
@@ -81,14 +105,8 @@ int main()
 	player_animated_sprite.addFrame(sf::IntRect(343, 3, 84, 84));
 	player_animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
 
-	
 		// Setup the NPC
-		GameObject &npc = NPC(npc_animated_sprite);
-	
-		
-		
-	
-	
+	GameObject &npc = NPC(npc_animated_sprite);
 	
 	// Setup the Player
 	GameObject &player = Player(player_animated_sprite);
@@ -102,19 +120,39 @@ int main()
 		npc.getAnimatedSprite().getPosition().y +
 		npc.getAnimatedSprite().getGlobalBounds().height);
 
+	
 	c2Circle circle_npc;
-
-	/*circle_npc.x = npc_circle.getGlobalBounds().x;*/
 	circle_npc.p = c2V(npc_circle.getPosition().x,
 		npc_circle.getPosition().y);
 	circle_npc.r = npc_circle.getRadius();
 
+	c2Circle circle_player;
+	circle_player.p = c2V(player_circle.getPosition().x,
+		player_circle.getPosition().y);
+	circle_player.r = player_circle.getRadius();
+	/// set up capsule
+	///
+	//capsules
 	c2Capsule capsule_npc;
 	capsule_npc.a = c2V(capsuleCircleL.getPosition().x,
 		capsuleCircleL.getPosition().y);
 	capsule_npc.b = c2V(capsuleCircleR.getPosition().x,
 		capsuleCircleR.getPosition().y);
+	capsule_npc.r = capsuleCircleR.getRadius();
 
+	c2Capsule capsule_player;
+	capsule_player.a = c2V(playerCapsuleCircleL.getPosition().x,
+		playerCapsuleCircleL.getPosition().y);
+	capsule_player.b = c2V(playerCapsuleCircleR.getPosition().x,
+		playerCapsuleCircleR.getPosition().y);
+	capsule_player.r = playerCapsuleCircleR.getRadius();
+
+
+	
+	c2Poly poly_npc;
+	poly_npc.count = polygon.getPointCount();
+	//poly_npc.verts[3] = polygon.getPointCount();
+	//poly_npc.norms[3] = polygon.getPointCount();
 	
 	//Setup Player AABB
 	c2AABB aabb_player;
@@ -128,7 +166,9 @@ int main()
 	// Collision result
 	int result = 0;
 	int circletoAABBresult = 0;
-
+	int capsuletoAABBresult = 0;
+	int circletocircleresult = 0;
+	int circletocapsuleresult = 0;
 	// Direction of movement of NPC
 	sf::Vector2f direction(0.1f, 0.2f);
 	
@@ -136,12 +176,16 @@ int main()
 	while (window.isOpen())
 	{
 		// Move Sprite Follow Mouse
-		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+		
+			player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window))); 
+			player_circle.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window))); 
+			playerCapsuleCircleL.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 		
 		// Move The NPC
 		sf::Vector2f move_to(npc.getAnimatedSprite().getPosition().x + direction.x, npc.getAnimatedSprite().getPosition().y + direction.y );
 		sf::Vector2f move(npc_circle.getPosition().x + direction.x, npc_circle.getPosition().y + direction.y);
-		/*sf::Vector2f capsule_move(npc_capsule.getPosition().x + direction.x, npc_capsule.getPosition().y + direction.y);*/
+		sf::Vector2f capsule_move(capsuleCircleL.getPosition().x + direction.x, capsuleCircleL.getPosition().y + direction.y);
+		sf::Vector2f triangle_move(polygon.getPosition().x + direction.x, polygon.getPosition().y + direction.y);
 
 		if (move_to.x < 0)
 		{
@@ -165,12 +209,18 @@ int main()
 			move_to.y = 600 - npc.getAnimatedSprite().getGlobalBounds().height;
 		}
 
-
+		capsuleCircleL.setPosition(capsule_move);
+		capsuleCircleR.setPosition(capsuleCircleL.getPosition());
+		capsuleRect.setPosition(capsuleCircleL.getPosition());
+		
+		
+		playerCapsuleCircleR.setPosition(playerCapsuleCircleL.getPosition());
+		playerCapsuleRect.setPosition(playerCapsuleCircleL.getPosition());
 
 
 		npc_circle.setPosition(move);
 		npc.getAnimatedSprite().setPosition(move_to);
-
+		polygon.setPosition(triangle_move);
 		// Update NPC AABB set x and y
 		aabb_npc.min = c2V
 		(
@@ -204,6 +254,21 @@ int main()
 			npc_circle.getPosition().y);
 		circle_npc.r = npc_circle.getRadius();
 
+		capsule_npc.a = c2V(capsuleCircleL.getPosition().x,
+			capsuleCircleL.getPosition().y);
+		capsule_npc.b = c2V(capsuleCircleR.getPosition().x,
+			capsuleCircleR.getPosition().y);
+		capsule_npc.r = capsuleCircleR.getRadius();
+
+
+		circle_player.p = c2V(player_circle.getPosition().x,
+			player_circle.getPosition().y);
+		circle_player.r = player_circle.getRadius();
+
+
+		poly_npc.count = polygon.getPointCount();
+		//poly_npc.verts[3] = polygon.getPointCount();
+		//poly_npc.norms[3] = polygon.getPointCount();
 
 		// Process events
 		sf::Event event;
@@ -247,10 +312,21 @@ int main()
 		// Check for collisions
 		result = c2AABBtoAABB(aabb_player, aabb_npc);
 		circletoAABBresult = c2CircletoAABB(circle_npc, aabb_player);
-		cout << ((result != 0) ? ("Collision") : "") << endl;
-		cout << ((circletoAABBresult != 0) ? ("Collision") : "") << endl;
-		
-		
+		capsuletoAABBresult = c2AABBtoCapsule(aabb_player, capsule_npc);
+		/*TriangletoAABBresult = c2AABBtoPoly(aabb_player, polygon, );*/
+		circletocircleresult = c2CircletoCircle(circle_player, circle_npc);
+		circletocapsuleresult = c2CircletoCapsule(circle_player , capsule_npc );
+
+
+
+		cout << ((result != 0) ? ("AABB to AABB Collision") : "") << endl;
+		cout << ((circletoAABBresult != 0) ? ("Circle to AABB Collision") : "") << endl;
+		cout << ((capsuletoAABBresult != 0) ? ("Capsule to AABB Collision") : "") << endl;
+		/*cout << ((TriangletoAABBresult != 0) ? ("Collision") : "") << endl;*/
+		cout << ((circletocircleresult != 0) ? ("Circle to Circle Collision") : "") << endl;
+		cout << ((circletocapsuleresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+
+
 		if (result || circletoAABBresult)
 		{
 			player.getAnimatedSprite().setColor(sf::Color::Magenta);
@@ -262,17 +338,20 @@ int main()
 
 		// Clear screen
 		window.clear();
-
-		// Draw the Players Current Animated Sprite
+		
 		window.draw(player.getAnimatedSprite());
-
+		
+		// Draw the Players Current Animated Sprite
+		window.draw(player_circle);
+		
 		// Draw the NPC's Current Animated Sprite
 		window.draw(npc.getAnimatedSprite());
 		window.draw(npc_circle);
 		window.draw(capsuleCircleL);
 		window.draw(capsuleCircleR);
 		window.draw(capsuleRect);
-
+		window.draw(polygon);
+		window.draw(player_circle);
 		// Update the window
 		window.display();
 	}

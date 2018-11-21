@@ -241,11 +241,11 @@ typedef struct
 // boolean collision detection
 // these versions are faster than the manifold versions, but only give a YES/NO
 // result
-int c2CircletoCircle(c2Circle A, c2Circle B);
-int c2CircletoAABB(c2Circle A, c2AABB B);
-int c2CircletoCapsule(c2Circle A, c2Capsule B);
-int c2AABBtoAABB(c2AABB A, c2AABB B);
-int c2AABBtoCapsule(c2AABB A, c2Capsule B);
+int c2CircletoCircle(c2Circle A, c2Circle B);    //done
+int c2CircletoAABB(c2Circle A, c2AABB B);        //done
+int c2CircletoCapsule(c2Circle A, c2Capsule B);    //done
+int c2AABBtoAABB(c2AABB A, c2AABB B);              //done
+int c2AABBtoCapsule(c2AABB A, c2Capsule B);        //done
 int c2CapsuletoCapsule(c2Capsule A, c2Capsule B);
 int c2CircletoPoly(c2Circle A, const c2Poly* B, const c2x* bx);
 int c2AABBtoPoly(c2AABB A, const c2Poly* B, const c2x* bx);
