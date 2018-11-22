@@ -1,3 +1,8 @@
+/// <summary>
+/// Author : David Whiteford 
+/// Time taken : 24hrs
+/// Collsiion detection between different shapes. press space to change shape
+/// </summary>
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #define TINYC2_IMPL
@@ -13,6 +18,7 @@ using namespace std;
 
 int main()
 {
+	//press space to cahnge shape
 	// Create the main window
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 	AnimatedSprite m_animated_sprite;
@@ -112,7 +118,7 @@ int main()
 	GameObject &player = Player(player_animated_sprite);
 	//Setup NPC AABB
 	c2AABB aabb_npc;
-
+	int playerShape = 0;
 	aabb_npc.min = c2V(npc.getAnimatedSprite().getPosition().x, npc.getAnimatedSprite().getPosition().y);
 	aabb_npc.max = c2V(
 		npc.getAnimatedSprite().getPosition().x +
@@ -151,7 +157,9 @@ int main()
 	
 	c2Poly poly_npc;
 	poly_npc.count = polygon.getPointCount();
-	//poly_npc.verts[] = c2V(polygon.getPointCount());
+	poly_npc.verts[0] = c2V(polygon.getPoint(0).x , polygon.getPoint(0).y);
+	poly_npc.verts[1] = c2V(polygon.getPoint(1).x, polygon.getPoint(1).y);
+	poly_npc.verts[2] = c2V(polygon.getPoint(2).x, polygon.getPoint(2).y);
 	//poly_npc.norms[] = c2V(polygon.getPointCount());
 	
 	//Setup Player AABB
@@ -164,24 +172,34 @@ int main()
 	Input input;
 	int isKeyPressedOnce = 0;
 	// Collision result
-	int result = 0;
-	int circletoAABBresult = 0;
-	int capsuletoAABBresult = 0;
-	int circletocircleresult = 0;
-	int circletocapsuleresult = 0;
+
 	// Direction of movement of NPC
 	sf::Vector2f direction(0.1f, 0.2f);
 	
 	// Start the game loop
 	while (window.isOpen())
 	{
-		
-		
+		switch (playerShape)
+		{
+		case 0:
 			player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+			player_circle.setPosition(-100, -100);
+			playerCapsuleCircleL.setPosition(-100, -100);
+			break;
+
+		case 1:
 			player_circle.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+			player.getAnimatedSprite().setPosition(-100 , -100);
+			playerCapsuleCircleL.setPosition(-100, -100);
+			break;
 
-
+		case 2:
 			playerCapsuleCircleL.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+			player.getAnimatedSprite().setPosition(-100, -100);
+			player_circle.setPosition(-100, -100);
+			break;
+		}
+		//sets the player capsule to the left capsule circle
 			playerCapsuleCircleR.setPosition(playerCapsuleCircleL.getPosition().x + 75, playerCapsuleCircleL.getPosition().y);
 			playerCapsuleRect.setPosition(playerCapsuleCircleL.getPosition().x, playerCapsuleCircleL.getPosition().y - 50);
 		
@@ -194,37 +212,35 @@ int main()
 
 		if (move_to.x < 0)
 		{
-			direction.x *= -1;
-			move_to.x = 0 + npc.getAnimatedSprite().getGlobalBounds().width;
+			direction.x *= -0.1;
+			move_to.x = 0 /*+ npc.getAnimatedSprite().getGlobalBounds().width*/;
 		}
 		else if (move_to.x + npc.getAnimatedSprite().getGlobalBounds().width >= 800)
 		{ 
-			direction.x *= -1;
+			direction.x *= -0.1;
 			move_to.x = 800 - npc.getAnimatedSprite().getGlobalBounds().width;
 		}
 		else if (move_to.y < 0 )
 		{ 
-			direction.y *= -1;
-			move_to.y = 0 + npc.getAnimatedSprite().getGlobalBounds().height;
+			direction.y *= -0.1;
+			move_to.y = 0 /*+ npc.getAnimatedSprite().getGlobalBounds().height*/;
 		}
 		else if (move_to.y + npc.getAnimatedSprite().getGlobalBounds().height >= 600 
 		)
 		{
-			direction.y *= -1;
+			direction.y *= -0.1;
 			move_to.y = 600 - npc.getAnimatedSprite().getGlobalBounds().height;
 		}
-
+		//sets new pos to move
 		capsuleCircleL.setPosition(capsule_move);
 		capsuleCircleR.setPosition(capsuleCircleL.getPosition().x + 75 , capsuleCircleL.getPosition().y );
 		capsuleRect.setPosition(capsuleCircleL.getPosition().x , capsuleCircleL.getPosition().y - 50);
-		
-		
-	
-
-
 		npc_circle.setPosition(move);
 		npc.getAnimatedSprite().setPosition(move_to);
 		polygon.setPosition(triangle_move);
+
+
+
 		// Update NPC AABB set x and y
 		aabb_npc.min = c2V
 		(
@@ -257,48 +273,73 @@ int main()
 		circle_npc.p = c2V(npc_circle.getPosition().x ,
 			npc_circle.getPosition().y);
 		circle_npc.r = npc_circle.getRadius();
-
+		//updated set pos for capsule npc
 		capsule_npc.a = c2V(capsuleCircleL.getPosition().x,
 			capsuleCircleL.getPosition().y);
 		capsule_npc.b = c2V(capsuleCircleR.getPosition().x,
 			capsuleCircleR.getPosition().y);
 		capsule_npc.r = capsuleCircleR.getRadius();
 
-
+		//updated set pos for circle player
 		circle_player.p = c2V(player_circle.getPosition().x,
 			player_circle.getPosition().y);
 		circle_player.r = player_circle.getRadius();
 
 
-
+		//updated set pos for capsule player
 		capsule_player.a = c2V(playerCapsuleCircleL.getPosition().x,
 			playerCapsuleCircleL.getPosition().y);
 		capsule_player.b = c2V(playerCapsuleCircleR.getPosition().x,
 			playerCapsuleCircleR.getPosition().y);
 		capsule_player.r = playerCapsuleCircleR.getRadius();
 
-
+		//set pos of polygon updated npc
 		poly_npc.count = polygon.getPointCount();
-		//poly_npc.verts[3] = polygon.getPointCount();
-		//poly_npc.norms[3] = polygon.getPointCount();
+		poly_npc.verts[0] = c2V(polygon.getPoint(0).x, polygon.getPoint(0).y);
+		poly_npc.verts[1] = c2V(polygon.getPoint(1).x, polygon.getPoint(1).y);
+		poly_npc.verts[2] = c2V(polygon.getPoint(2).x, polygon.getPoint(2).y);
+		//poly_npc.norms[] = c2V(polygon.getPointCount());
 
 		// Process events
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
+
+			//key press to change shape
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			{
+				//uses player shape variable to change shape
+				if (playerShape < 2)
+				{
+					playerShape++;
+				}
+				else
+				{
+					playerShape = 0;
+				}
+
+			}
 			switch (event.type)
 			{
 			case sf::Event::Closed:
 				// Close window : exit
 				window.close();
-				
-					
-				
 
-				
 			}
 		}
-
+		//sets up variables for the results
+		int result = 0;
+		int circletoAABBresult = 0;
+		int capsuletoAABBresult = 0;
+		int circletocircleresult = 0;
+		int circletocapsuleresult = 0;
+		int playerCircletoAABBresult = 0;
+		int playerCapsuletoAABBresult = 0 ;
+		int circletoplayerCapsuleresult = 0;
+		int playerCapsuletoCapsule = 0;
+		int TriangletoAABBresult = 0;
+		int Triangletocircleresult = 0;
+		int Triangletocapsuleresult = 0;
 		// Handle input to Player
 		player.handleInput(input);
 		npc.handleInput(input);
@@ -312,43 +353,60 @@ int main()
 		result = c2AABBtoAABB(aabb_player, aabb_npc);
 		circletoAABBresult = c2CircletoAABB(circle_npc, aabb_player);
 		capsuletoAABBresult = c2AABBtoCapsule(aabb_player, capsule_npc);
-		/*TriangletoAABBresult = c2AABBtoPoly(aabb_player, polygon, );*/
+		TriangletoAABBresult = c2AABBtoPoly(aabb_player, &poly_npc, NULL);
+		
+		Triangletocircleresult = c2CircletoPoly(circle_player, &poly_npc, NULL);
+		Triangletocapsuleresult = c2CapsuletoPoly(capsule_player, &poly_npc, NULL);
+
+
 		circletocircleresult = c2CircletoCircle(circle_player, circle_npc);
 		circletocapsuleresult = c2CircletoCapsule(circle_player , capsule_npc );
+		playerCircletoAABBresult = c2CircletoAABB(circle_player, aabb_npc);
+		playerCapsuletoAABBresult = c2AABBtoCapsule(aabb_npc, capsule_player); 
+		circletoplayerCapsuleresult = c2CircletoCapsule(circle_npc, capsule_player); 
+		playerCapsuletoCapsule =   c2CapsuletoCapsule(capsule_player, capsule_npc);
 
-
-
+		//outputs message if there is a collision
 		cout << ((result != 0) ? ("AABB to AABB Collision") : "") << endl;
 		cout << ((circletoAABBresult != 0) ? ("Circle to AABB Collision") : "") << endl;
 		cout << ((capsuletoAABBresult != 0) ? ("Capsule to AABB Collision") : "") << endl;
-		/*cout << ((TriangletoAABBresult != 0) ? ("Collision") : "") << endl;*/
+		cout << ((TriangletoAABBresult != 0) ? ("Poly Collision") : "") << endl;
 		cout << ((circletocircleresult != 0) ? ("Circle to Circle Collision") : "") << endl;
 		cout << ((circletocapsuleresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((playerCircletoAABBresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((playerCapsuletoCapsule != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((circletoplayerCapsuleresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((playerCapsuletoAABBresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((Triangletocircleresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
+		cout << ((Triangletocapsuleresult != 0) ? ("Circle to Capsule Collision") : "") << endl;
 
-
-		if (result || circletoAABBresult)
+		//checks if any of the collisions happen and then chnges color of player shape to red
+		if (result || circletoAABBresult || capsuletoAABBresult || circletocircleresult || circletocapsuleresult || playerCircletoAABBresult 
+			|| playerCapsuletoAABBresult || circletoplayerCapsuleresult || playerCapsuletoCapsule || TriangletoAABBresult || Triangletocapsuleresult || Triangletocircleresult)
 		{
-			player.getAnimatedSprite().setColor(sf::Color::Magenta);
+			player.getAnimatedSprite().setColor(sf::Color::Red);
+			player_circle.setFillColor(sf::Color::Red);
+			playerCapsuleCircleL.setFillColor(sf::Color::Red);
+			playerCapsuleCircleR.setFillColor(sf::Color::Red);
+			playerCapsuleRect.setFillColor(sf::Color::Red);
 		}
 		else 
 		{
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+			player_circle.setFillColor(sf::Color::Green);
+			playerCapsuleCircleL.setFillColor(sf::Color::Green);
+			playerCapsuleCircleR.setFillColor(sf::Color::Green);
+			playerCapsuleRect.setFillColor(sf::Color::Green);
 		}
 
 		// Clear screen
 		window.clear();
 
-		
 	
-			window.draw(player.getAnimatedSprite());
-		
+
 	
 		
-		
-		// Draw the Players Current Animated Sprite
-	
-		
-		// Draw the NPC's Current Animated Sprite
+		// Draw the NPC's capsule circle polygon and square
 		window.draw(npc.getAnimatedSprite());
 		window.draw(npc_circle);
 		window.draw(capsuleCircleL);
@@ -360,11 +418,11 @@ int main()
 		/// Drawing for all the player capsules , the player square and the player circle
 		/// </summary>
 		/// <returns></returns>
-		/*window.draw(playerCapsuleCircleL);
+		window.draw(playerCapsuleCircleL);
 		window.draw(playerCapsuleCircleR);
-		window.draw(playerCapsuleRect);*/
-		
-			window.draw(player_circle);
+		window.draw(playerCapsuleRect);
+		window.draw(player.getAnimatedSprite());
+		window.draw(player_circle);
 
 		
 		// Update the window
