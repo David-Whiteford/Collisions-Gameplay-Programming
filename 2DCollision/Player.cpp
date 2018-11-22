@@ -2,6 +2,7 @@
 #include <Player.h>
 #include <Idle.h>
 #include <Debug.h>
+#include <SFML/Graphics.hpp>
 
 Player::Player() : GameObject()
 {
@@ -28,28 +29,23 @@ AnimatedSprite& Player::getAnimatedSprite()
 
 void Player::handleInput(Input in)
 {
+
 	DEBUG_MSG("Handle Input");
 
-	switch (in.getCurrent())
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-	case Input::Action::IDLE:
-		//std::cout << "Player Idling" << std::endl;
-		m_player_fsm.idle();
-		break;
-	case Input::Action::UP:
-		//std::cout << "Player Up" << std::endl;
-		m_player_fsm.climbing();
-		break;
-	case Input::Action::LEFT:
-		//std::cout << "Player Left" << std::endl;
 		m_player_fsm.jumping();
-		break;
-	case Input::Action::RIGHT:
-		//std::cout << "Player Idling" << std::endl;
+		m_animated_sprite.setFrameRow(0);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	{
 		m_player_fsm.jumping();
-		break;
-	default:
-		break;
+		m_animated_sprite.setFrameRow(1);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::U))
+	{
+		m_player_fsm.jumping();
+		m_animated_sprite.setFrameRow(2);
 	}
 }
 

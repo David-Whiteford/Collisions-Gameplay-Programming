@@ -3,6 +3,9 @@
 AnimatedSprite::AnimatedSprite() 
 {
 	m_current_frame = 0;
+	m_currentFrameCol = 0;
+	m_currentFrameRow = 0;
+	setCurrentFrame();
 }
 
 AnimatedSprite::AnimatedSprite(const sf::Texture& t) : Sprite(t), m_current_frame(0), m_time(seconds(0.5f)) {}
@@ -29,24 +32,39 @@ const IntRect& AnimatedSprite::getFrame(int n) {
 	return m_frames[n];
 }
 
-void AnimatedSprite::addFrame(IntRect& frame) {
+void AnimatedSprite::addFrame(IntRect& frame) 
+{
 	m_frames.push_back(frame);
 }
 
-const int AnimatedSprite::getCurrentFrame() {
+const int AnimatedSprite::getCurrentFrame() 
+{
 	return m_current_frame;
 }
 
-void AnimatedSprite::update(){
-	if (m_clock.getElapsedTime() > m_time) {
-		if (m_frames.size() > m_current_frame + 1)
-		{
-			m_current_frame++;
-		}
-		else {
-			m_current_frame = 0;
-		}
-		m_clock.restart();
+void AnimatedSprite::update()
+{
+	if (m_clock.getElapsedTime() > m_time)
+	{
+			if (m_currentFrameCol < 5)
+			{
+				m_currentFrameCol++;
+			}
+			else
+			{
+				m_currentFrameCol = 0;
+			}
+			setCurrentFrame();
+			m_clock.restart();
 	}
+
+}
+void AnimatedSprite::setFrameRow(int t_frameRow)
+{
+		m_currentFrameRow = t_frameRow;
+}
+void AnimatedSprite::setCurrentFrame()
+{
+	m_currentFrame = IntRect(3 + m_currentFrameCol * 85, 3 + m_currentFrameRow * 85, 85, 85);
 }
 
